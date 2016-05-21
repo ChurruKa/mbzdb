@@ -5,7 +5,7 @@ the official MusicBrainz schema and replication FTP.
 
 ## Basic usage
 - Edit `settings.pl` to match your environment.
-- Edit `settings_mysql.pl` or settings_postgresql.pl to match your database environment.
+- Edit `settings_mysql.pl` or `settings_postgresql.pl` to match your database environment.
 - Run `./init.pl`
 
 You may need to install the following CPAN modules in order to proceed:
@@ -25,10 +25,10 @@ Changes for allow parts of the init script to run in batch mode and/or in parall
 - Uncompress mbdump
   - Using `lbzip2`:
       - `./init.pl --action=11 --ask=0 --bzip="/usr/bin/lbzip2 -d -k -c -v" --pipe-bzip=1  --parallel=1`
-      - lbzip2 seems to better use all cores on single files and gives a 8x speedup. 
+      - `lbzip2` seems to better use all cores on single files and gives a 8x speedup. 
   - Using `pbzip2`:
       - `./init.pl --action=11 --ask=0 --bzip="/usr/bin/pbzip2 -m10240 -p16 -r -v" --pipe-bzip=1  --parallel=1`
-      - Note at the moment pbzip2 can't make use of all cores when decompressing MusicBrainz mbdump files.
+      - Note at the moment `pbzip2` can't make use of all cores when decompressing MusicBrainz mbdump files.
   
 - Load data:
     - `./init.pl --action=4 --ask=0`
