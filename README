@@ -20,11 +20,19 @@ perl -MCPAN -e install DBD::mysql
 7.0
   * Allow parts of the init script to run in batch mode and/or in parallel:
   ** Create tables:     ./init.pl --action=2 --ask=0
+  
   ** Download mbdump:   ./init.pl --action=10 --ask=0
-  ** Uncompress mbdump: ./init.pl --action=11 --ask=0 --bzip="/usr/bin/pbzip2 -m10240 -p16 -r -v" --pipe-bzip=1  --parallel=1
-  *** Note at the moment pbzip2 can't make use of all cores when decompressing
-      because of the format of the mbdump files created by MuscBrainz.
+  
+  ** Uncompress mbdump: 
+  *** Using lbzip2:
+      `./init.pl --action=11 --ask=0 --bzip="/usr/bin/lbzip2 -d -k -c -v" --pipe-bzip=1  --parallel=1`
+  **** lbzip2 seems to better use all cores on single files and gives a 8x speedup. 
+  *** Using pbzip2:
+      `./init.pl --action=11 --ask=0 --bzip="/usr/bin/pbzip2 -m10240 -p16 -r -v" --pipe-bzip=1  --parallel=1`
+  **** Note at the moment pbzip2 can't make use of all cores when decompressing MusicBrainz mbdump files.
+  
   ** Load data:         ./init.pl --action=4 --ask=0
+  
   * After that, you can continue the database creation using the 5, 6 & 7
     init.pl options from the interactive menu (indexing, foreign keys creation,
     plugins initialization).
