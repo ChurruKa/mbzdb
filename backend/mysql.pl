@@ -780,6 +780,7 @@ resume_stmt_end_on_check:
 				$parts[$i] = "CHAR(1)" if(uc(substr($parts[$i], 0, 4)) eq "BOOL");
 				$parts[$i] = "VARCHAR(256)" if(uc($parts[$i]) eq "INTERVAL");
 				$parts[$i] = "TIMESTAMP" if(uc($parts[$i]) eq "TIMESTAMPTZ");
+				$parts[$i] = "TEXT" if(uc($parts[$i]) eq "JSONB");
 				$parts[$i] = "0" if(uc(substr($parts[$i], 0, 3)) eq "NOW");
 				$parts[$i] = "0" if(uc(substr($parts[$i], 1, 1)) eq "{");
 				$parts[$i] = $parts[$i + 1] = $parts[$i + 2] = "" if(uc($parts[$i]) eq "WITH");
