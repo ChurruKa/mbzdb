@@ -275,6 +275,13 @@ sub backend_mysql_update_index {
 				$sorting = ' DESC';
 				$columns[$i] = substr($columns[$i], 0, -5);
 			}
+			elsif(substr($columns[$i], -15) eq 'DESC NULLS LAST') {
+				$sorting = ' DESC';
+				# print("columns[i]: " . $columns[$i] . " -> ");
+				$columns[$i] = substr($columns[$i], 0, -16);
+				# print($columns[$i] . "\n");
+			}
+			
 			if((backend_mysql_get_column_type($table_name, mbz_trim($columns[$i])) eq 'text') || (backend_mysql_get_column_type($table_name, mbz_trim($columns[$i])) eq 'varchar')  ) {
 				$columns[$i] = "`" . mbz_trim(mbz_remove_quotes($columns[$i])) . "`($index_size)" . $sorting;
 			} else {
@@ -285,6 +292,9 @@ sub backend_mysql_update_index {
 		# now we construct the index back together in case there was changes along the way
 		$new_line = substr($line, 0, $pos_index) . "INDEX `$index_name` ON `$table_name` (";
 		$new_line .= join(",", @columns) . ")";
+		
+		# skip index if we can't figure out columns to CREATE INDEX on ("CREATE INDEX .... USING GIN (..." case)
+		next if( join(",", @columns) eq '' ); 
 		
 		# all looks good so far ... create the index
 		print "$new_line\n";
@@ -348,6 +358,9 @@ sub backend_mysql_update_index {
 		# now we construct the index back together in case there was changes along the way
 		$new_line = substr($line, 0, $pos_index) . "INDEX `$index_name` ON `$table_name` (";
 		$new_line .= join(",", @columns) . ")";
+		
+		# skip index if we can't figure out columns to CREATE INDEX on ("CREATE INDEX .... USING GIN (..." case)
+		next if( join(",", @columns) eq '' ); 
 		
 		# all looks good so far ... create the index
 		print "$new_line\n";
@@ -497,6 +510,9 @@ sub backend_mysql_update_index {
 		$new_line = substr($line, 0, $pos_index) . "INDEX `$index_name` ON `$table_name` (";
 		$new_line .= join(",", @columns) . ")";
 		
+		# skip index if we can't figure out columns to CREATE INDEX on ("CREATE INDEX .... USING GIN (..." case)
+		next if( join(",", @columns) eq '' ); 
+		
 		# all looks good so far ... create the index
 		print "$new_line\n";
 		my $success = mbz_do_sql($new_line);
@@ -602,6 +618,10 @@ sub backend_mysql_update_index {
 		
 		# now we construct the index back together in case there was changes along the way
 		$new_line = substr($line, 0, $pos_index) . "INDEX `$index_name` ON `$table_name` (";
+		
+		# skip index if we can't figure out columns to CREATE INDEX on ("CREATE INDEX .... USING GIN (..." case)
+		next if( join(",", @columns) eq '' ); 
+		
 		$new_line .= join(",", @columns) . ")";
 		
 		# all looks good so far ... create the index
@@ -780,6 +800,7 @@ resume_stmt_end_on_check:
 				$parts[$i] = "CHAR(1)" if(uc(substr($parts[$i], 0, 4)) eq "BOOL");
 				$parts[$i] = "VARCHAR(256)" if(uc($parts[$i]) eq "INTERVAL");
 				$parts[$i] = "TIMESTAMP" if(uc($parts[$i]) eq "TIMESTAMPTZ");
+				$parts[$i] = "TEXT" if(uc($parts[$i]) eq "JSONB");
 				$parts[$i] = "0" if(uc(substr($parts[$i], 0, 3)) eq "NOW");
 				$parts[$i] = "0" if(uc(substr($parts[$i], 1, 1)) eq "{");
 				$parts[$i] = $parts[$i + 1] = $parts[$i + 2] = "" if(uc($parts[$i]) eq "WITH");
