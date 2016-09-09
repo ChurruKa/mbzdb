@@ -413,8 +413,21 @@ sub mbz_raw_download {
 	$ftp->login('anonymous') or die "Can't login ($host): " . $ftp->message;
 	$ftp->cwd('/pub/musicbrainz/data/fullexport/')
 		or die "Can't change directory ($host): " . $ftp->message;
-	my @ls = $ftp->ls('-l latest*');
-	$latest = substr($ls[0], length($ls[0]) - 15, 15);
+
+	#my @ls = $ftp->ls('-l latest*');
+	#$latest = substr($ls[0], length($ls[0]) - 15, 15);
+
+	my ($remote_file_content, $remote_file_handle);
+	open($remote_file_handle, '>', \$remote_file_content);
+
+	$ftp->get("LATEST", $remote_file_handle)
+			or die "Error reading latest dump information: " . $ftp->message;
+
+	$latest =  $remote_file_content;
+	# trim -- just in case :)
+	$latest =~ s/^\s+//;
+	$latest =~ s/\s+$//;
+
 	print "The latest is mbdump is '$latest'\n";
 	$ftp->cwd("/pub/musicbrainz/data/fullexport/$latest")
 			or die "Can't change directory (ftp.musicbrainz.org): " . $ftp->message;
