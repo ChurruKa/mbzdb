@@ -24,10 +24,6 @@ $L{'invalid'} = "Invalid input";
 # Language changed
 $L{'langchanged'} = "Language changed. Please restart init.pl\n";
 
-# Welcome message
-$L{'init_welcome'} =
-"Welcome to mbzdb v1.0\n\n";
-
 $L{'init_firstboot'} =
 "*** Before proceeding create the database you wish to use. ***\n\n".
 "Values in square brackets indicate defaults, if you are unsure if\n".

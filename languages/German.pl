@@ -25,14 +25,6 @@ $L{'invalid'} = "Ungültige Eingabe";
 # Language changed
 $L{'langchanged'} = "Sprache geändert. Bitte init.pl erneut aufrufen\n";
 
-# Welcome message
-$L{'init_welcome'} =
-"Willkommen bei mbzdb v1.0".
-"HINWEIS: Version 3 läuft mit einem anderen Replikations-System als\n".
-"die älteren Varianten. Wir empfehlen deshalb eine neue Datenbank für\n".
-"diese v3 zu erstellen.".
-"Bitte fuer Details im Handbuch nachsehen.\n\n";
-
 $L{'init_firstboot'} =
 "*** Bevor es losgehen kann UNBEDINGT zuerst die gewünschte MySQL-Datenbank\n".
 "    MANUELL erstellen! *** \n\n".
