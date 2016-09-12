@@ -411,6 +411,7 @@ sub mbz_raw_download {
 	my $ftp = Net::FTP->new($host, Timeout => 60)
 				or die "Cannot contact $host: $!";
 	$ftp->login('anonymous') or die "Can't login ($host): " . $ftp->message;
+	$ftp->passive(on) or die "Can't put FTP host in passive mode: $!";
 	$ftp->cwd('/pub/musicbrainz/data/fullexport/')
 		or die "Can't change directory ($host): " . $ftp->message;
 
