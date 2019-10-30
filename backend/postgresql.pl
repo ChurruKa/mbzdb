@@ -194,11 +194,6 @@ sub backend_postgresql_update_schema_file
 				{
 					$parts[$i] = "TEXT";
 				}
-				
-				if(uc(substr($parts[$i], 0, 4)) eq "CUBE" && !$g_contrib_cube)
-				{
-					$parts[$i] = "TEXT";
-				}
 			}
 			
 			if(substr(reverse($parts[@parts - 1]), 0, 1) eq ",")
