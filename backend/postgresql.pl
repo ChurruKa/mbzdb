@@ -139,7 +139,7 @@ sub backend_postgresql_update_schema_file
 		
 		my $stmt = "";
 		
-		print "line: $line\n";
+		#print "line: $line\n";
 		
 		if(substr($line, 0, 12) eq "CREATE TABLE")
 		{
@@ -205,7 +205,7 @@ sub backend_postgresql_update_schema_file
 			
 			$parts[0] = mbz_remove_quotes($parts[0]);
 			
-			print "parts.0 is $parts[0] \n";
+			# print "parts.0 is $parts[0] \n";
 			
 			if($parts[0] ne 'PRIMARY' && $parts[0] ne 'FOREIGN')
 			{
