@@ -120,36 +120,69 @@ sub backend_postgresql_update_foreignkey {
 # It would be nice if this subroutine had a makeover so that it would check items before attempting
 # to create (and replace) them. This is just so all the error messages and so nasty.
 # @return Always 1.
-sub backend_postgresql_update_schema_file {
+sub backend_postgresql_update_schema_file
+{
 	open(SQL, $_[0]);
 	chomp(my @lines = <SQL>);
+	
 	my $table = "";
-	my $skip = 0;
-	foreach my $line (@lines) {
+	my $skip  = 0;
+	my @knownTables;
+	
+	foreach my $line (@lines)
+	{
+        my $rawLine = $line;
+		$line = mbz_trim($line);
+		
 		# skip blank lines and single bracket lines
 		next if($line eq "" || $line eq "(" || substr($line, 0, 1) eq "\\");
 		
 		my $stmt = "";
-		if(substr($line, 0, 12) eq "CREATE TABLE") {
-			$skip = 0;
+		
+		print "line: $line\n";
+		
+		if(substr($line, 0, 12) eq "CREATE TABLE")
+		{
+			$skip  = 0;
 			$table = mbz_remove_quotes(substr($line, 13, length($line)));
-			if(substr($table, length($table) - 1, 1) eq '(') {
+			
+			if (index($table, "--") != -1)
+			{
+                $table = mbz_trim(substr($table, 0, index($table, "--")));
+            } 
+			
+			if(substr($table, length($table) - 1, 1) eq '(')
+			{
 				$table = substr($table, 0, length($table) - 1);
 			}
+			
 			$table = mbz_trim($table);
 			print $L{'table'} . " $table\n";
-			if(backend_postgresql_table_exists($table) == 0) {
+			if(backend_postgresql_table_exists($table) == 0)
+			{
 				$stmt = "CREATE TABLE \"$table\" (dummycolumn int)";
 				$stmt .= " tablespace $g_tablespace" if($g_tablespace ne '');
+				
+				unshift @knownTables, $table;
 			}
 		}
-		elsif(substr($line, 0, 16) eq "CREATE AGGREGATE") {
+		elsif(substr($line, 0, 16) eq "CREATE AGGREGATE")
+		{
 			$skip = 1;
 		}
-		elsif(substr($line, 0, 1) eq " " || substr($line, 0, 1) eq "\t") {
+		elsif(substr($line, 0, 11) eq "CREATE TYPE")
+		{
+            $stmt = $line;
+		}
+		#elsif(substr($line, 0, 1) eq " " || substr($line, 0, 1) eq "\t")
+		elsif(substr($rawLine, 0, 1) eq " " || substr($rawLine, 0, 1) eq "\t")
+		{
 			my @parts = split(" ", $line);
-			for($i = 0; $i < @parts; ++$i) {
-				if(substr($parts[$i], 0, 2) eq "--") {
+			
+			for($i = 0; $i < @parts; ++$i)
+			{
+				if(substr($parts[$i], 0, 2) eq "--")
+				{
 					@parts = @parts[0 .. ($i - 1)];
 					last;
 				}
@@ -157,34 +190,64 @@ sub backend_postgresql_update_schema_file {
 				# because the original MusicBrainz database is PostgreSQL we only need to make
 				# minimal changes to the SQL.
 				
-				if(uc(substr($parts[$i], 0, 4)) eq "CUBE" && !$g_contrib_cube) {
+				if(uc(substr($parts[$i], 0, 4)) eq "CUBE" && !$g_contrib_cube)
+				{
+					$parts[$i] = "TEXT";
+				}
+				
+				if(uc(substr($parts[$i], 0, 4)) eq "CUBE" && !$g_contrib_cube)
+				{
 					$parts[$i] = "TEXT";
 				}
 			}
-			if(substr(reverse($parts[@parts - 1]), 0, 1) eq ",") {
+			
+			if(substr(reverse($parts[@parts - 1]), 0, 1) eq ",")
+			{
 				$parts[@parts - 1] = substr($parts[@parts - 1], 0, length($parts[@parts - 1]) - 1);
 			}
+			
 			next if($parts[0] eq "CHECK" || $parts[0] eq "CONSTRAINT" || $parts[0] eq "");
+			
 			$parts[0] = mbz_remove_quotes($parts[0]);
-			if($parts[0] ne 'PRIMARY' && $parts[0] ne 'FOREIGN') {
-				if($table ne '' && backend_postgresql_table_column_exists($table, mbz_remove_quotes($parts[0])) == 0) {
+			
+			print "parts.0 is $parts[0] \n";
+			
+			if($parts[0] ne 'PRIMARY' && $parts[0] ne 'FOREIGN')
+			{
+				if($table ne '' && backend_postgresql_table_column_exists($table, mbz_remove_quotes($parts[0])) == 0)
+				{
 					$parts[0] = "\"$parts[0]\"";
 					$stmt = "ALTER TABLE \"$table\" ADD " . join(" ", @parts);
 				}
 			}
 		}
-		elsif(substr($line, 0, 2) eq ");") {
-			if($table ne '' && backend_postgresql_table_column_exists($table, 'dummycolumn') == 1) {
+		elsif(substr($line, 0, 2) eq ");")
+		{
+			if($table ne '' && backend_postgresql_table_column_exists($table, 'dummycolumn') == 1)
+			{
 				$stmt = "ALTER TABLE \"$table\" DROP dummycolumn";
 			}
 		}
+		
 		if($stmt ne "") {
+            
+            print "stmt: $stmt \n";
+		
 			# if this statement fails its hopefully because the field exists
-			if($skip == 0) {
+			if($skip == 0)
+			{
 				$dbh->do($stmt) or print "";
 			}
 		}
 	}
+	
+	foreach my $table (@knownTables)
+	{
+        my $stmt = "ALTER TABLE \"$table\" DROP COLUMN IF EXISTS dummycolumn";
+        print "$stmt\n";
+        
+        $dbh->do($stmt) or print "";
+    }
 	
 	close(SQL);
 	return 1;
