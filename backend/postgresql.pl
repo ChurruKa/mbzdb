@@ -4,7 +4,9 @@
 # @return $dbh
 sub backend_postgresql_connect {
 	$dbh = DBI->connect("dbi:Pg:dbname=$g_db_name;host=$g_db_host;port=$g_db_port",
-						$g_db_user, $g_db_pass);
+	                    $g_db_user, $g_db_pass, {pg_enable_utf8 => 0});
+    
+    mbz_do_sql("SET client_encoding = 'UTF8';");
 	return $dbh;
 }
 
@@ -193,6 +195,14 @@ sub backend_postgresql_update_schema_file
 				if(uc(substr($parts[$i], 0, 4)) eq "CUBE" && !$g_contrib_cube)
 				{
 					$parts[$i] = "TEXT";
+				}
+				elsif(uc(substr($parts[$i], 0, 12)) eq "VARCHAR(255)")
+				{
+                    #Loading data into 'annotation' (2 of 199)...
+                    #DBD::Pg::db pg_putcopyend failed: ERROR:  value too long for type character varying(255)
+                    #
+                    # Remove size limit
+                    $parts[$i] = "VARCHAR";
 				}
 			}
 			
